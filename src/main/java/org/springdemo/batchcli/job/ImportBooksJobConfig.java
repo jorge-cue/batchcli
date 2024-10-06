@@ -21,7 +21,6 @@ import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.separator.DefaultRecordSeparatorPolicy;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
-import org.springframework.batch.item.file.transform.FieldSet;
 import org.springframework.batch.item.file.transform.LineTokenizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -29,7 +28,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.validation.BindException;
 
 import java.util.function.Function;
 
@@ -91,23 +89,18 @@ public class ImportBooksJobConfig {
     @Bean
     LineTokenizer lineTokenizer() {
         var lineTokenizer = new DelimitedLineTokenizer(",");
-        lineTokenizer.setNames(new String[] {"ISBN", "TITLE", "AUTHORS", "YEAR_PUBLISHED"});
+        lineTokenizer.setNames("ISBN", "TITLE", "AUTHORS", "YEAR_PUBLISHED");
         return lineTokenizer;
     }
 
     @Bean
     FieldSetMapper<Book> fieldSetMapper() {
-        return new FieldSetMapper<Book>() {
-            @Override
-            public Book mapFieldSet(FieldSet fieldSet) throws BindException {
-                return Book.builder()
-                        .isbn(fieldSet.readString("ISBN"))
-                        .title(fieldSet.readString("TITLE"))
-                        .authors(fieldSet.readString("AUTHORS"))
-                        .yearPublished(fieldSet.readInt("YEAR_PUBLISHED"))
-                        .build();
-            }
-        };
+        return fieldSet -> Book.builder()
+                .isbn(fieldSet.readString("ISBN"))
+                .title(fieldSet.readString("TITLE"))
+                .authors(fieldSet.readString("AUTHORS"))
+                .yearPublished(fieldSet.readInt("YEAR_PUBLISHED"))
+                .build();
     }
 
     @Bean
